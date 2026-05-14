@@ -26,7 +26,12 @@ export default function JobCard({ job }: JobCardProps) {
         <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-sm font-medium">{job.status}</span>
       </div>
       <p className="text-sm text-gray-500 mb-3">{job.location}</p>
-      <link href={`/jobs/$(job._id)`} className="text-blue-600 font-semibold">View Details →</link>
+      <Link
+        href={job._id ? `/jobs/${job._id}` : "#"}
+        className="font-semibold text-blue-600 hover:underline"
+      >
+        View Details →
+      </Link>
     </div>
   );
 }

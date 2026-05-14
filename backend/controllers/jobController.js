@@ -56,19 +56,26 @@ const getJobs = async (req, res) => {
         contactEmail,
       } = req.body;
   
-      if (!title || !description) {
+      const safeTitle = typeof title === "string" ? title.trim() : "";
+      const safeDescription =
+        typeof description === "string" ? description.trim() : "";
+
+      if (!safeTitle || !safeDescription) {
         return res.status(400).json({
           message: "Title and description are required",
         });
       }
-  
+
+      const trimmedEmail =
+        typeof contactEmail === "string" ? contactEmail.trim() : "";
+
       const newJob = await JobRequest.create({
-        title,
-        description,
-        category,
-        location,
-        contactName,
-        contactEmail,
+        title: safeTitle,
+        description: safeDescription,
+        ...(category ? { category } : {}),
+        ...(location ? { location } : {}),
+        ...(contactName ? { contactName } : {}),
+        ...(trimmedEmail ? { contactEmail: trimmedEmail } : {}),
       });
   
       res.status(201).json(newJob);
