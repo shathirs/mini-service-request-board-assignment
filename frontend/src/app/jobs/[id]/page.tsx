@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import api from "@/services/api";
 import StatusMessage from "@/components/StatusMessage";
@@ -114,26 +115,32 @@ export default function JobDetailPage() {
     }
   };
 
-  if (!job) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-100 p-8">
-        <div className="max-w-3xl w-full">
-          {feedback && (
-            <StatusMessage
-              type={feedback.type}
-              message={feedback.message}
-              onDismiss={() => setFeedback(null)}
-            />
-          )}
-          {!feedback && <p className="text-center text-gray-600">Loading job details…</p>}
-        </div>
-      </main>
-    );
-  }
-
   return (
     <main className="min-h-screen bg-gray-100 p-8">
-      <div className="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-md">
+      <div className="mx-auto max-w-3xl">
+        <Link
+          href="/"
+          className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-blue-600 transition hover:text-blue-800"
+        >
+          <span aria-hidden>←</span>
+          Back to Service Board
+        </Link>
+
+        {!job ? (
+          <>
+            {feedback && (
+              <StatusMessage
+                type={feedback.type}
+                message={feedback.message}
+                onDismiss={() => setFeedback(null)}
+              />
+            )}
+            {!feedback && (
+              <p className="text-center text-gray-600">Loading job details…</p>
+            )}
+          </>
+        ) : (
+        <div className="rounded-xl bg-white p-8 shadow-md">
         {feedback && (
           <StatusMessage
             type={feedback.type}
@@ -228,6 +235,8 @@ export default function JobDetailPage() {
             </button>
           )}
         </div>
+        </div>
+        )}
       </div>
     </main>
   );
