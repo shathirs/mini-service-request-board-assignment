@@ -11,6 +11,14 @@ const getJobs = async (req, res) => {
       if (req.query.status) {
         filter.status = req.query.status;
       }
+
+      if (req.query.search) {
+        const searchPattern = { $regex: req.query.search, $options: "i" };
+        filter.$or = [
+          { title: searchPattern },
+          { description: searchPattern },
+        ];
+      }
   
       const jobs = await JobRequest.find(filter).sort({
         createdAt: -1,
