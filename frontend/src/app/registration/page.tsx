@@ -5,6 +5,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import api from "@/services/api";
+import StatusMessage from "@/components/StatusMessage";
+
+type Feedback = {
+  type: "success" | "error";
+  message: string;
+};
 
 export default function RegistrationPage() {
   const router = useRouter();
@@ -12,39 +18,62 @@ export default function RegistrationPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email.trim() || !password.trim()) {
-      alert("Email and password are required");
+      setFeedback({
+        type: "error",
+        message: "Email and password are required.",
+      });
       return;
     }
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      setFeedback({
+        type: "error",
+        message: "Passwords do not match.",
+      });
       return;
     }
 
     setLoading(true);
+    setFeedback(null);
     try {
-      await api.post("/auth/register", {
+      const response = await api.post("/auth/register", {
         email: email.trim(),
         password,
       });
 
-      alert("Registration successful. Please log in.");
-      router.push("/login");
+      const apiMessage = (response.data as { message?: string } | undefined)
+        ?.message;
+
+      setFeedback({
+        type: "success",
+        message:
+          apiMessage ??
+          "Registration successful. Redirecting to login…",
+      });
+
+      window.setTimeout(() => router.push("/login"), 2000);
     } catch (error) {
       console.error(error);
       const message = axios.isAxiosError(error)
         ? (error.response?.data as { message?: string } | undefined)?.message
         : undefined;
-      alert(message ?? "Registration failed");
+      setFeedback({
+        type: "error",
+        message:
+          message ?? "Registration failed. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
   };
+
+  const clearFeedback = () => setFeedback(null);
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -56,12 +85,24 @@ export default function RegistrationPage() {
 
         <div>
           <h1 className="text-3xl font-bold text-center mb-6">Register</h1>
+
+          {feedback && (
+            <StatusMessage
+              type={feedback.type}
+              message={feedback.message}
+              onDismiss={clearFeedback}
+            />
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="email"
               placeholder="Email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                clearFeedback();
+              }}
               className="w-full border p-3 rounded-lg"
               autoComplete="email"
             />
@@ -69,7 +110,10 @@ export default function RegistrationPage() {
               type="password"
               placeholder="Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                clearFeedback();
+              }}
               className="w-full border p-3 rounded-lg"
               autoComplete="new-password"
             />
@@ -77,7 +121,10 @@ export default function RegistrationPage() {
               type="password"
               placeholder="Confirm Password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e) => {
+                setConfirmPassword(e.target.value);
+                clearFeedback();
+              }}
               className="w-full border p-3 rounded-lg"
               autoComplete="new-password"
             />

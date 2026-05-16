@@ -6,22 +6,33 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import api from "@/services/api";
 import { setSession } from "@/lib/auth";
+import StatusMessage from "@/components/StatusMessage";
+
+type Feedback = {
+  type: "success" | "error";
+  message: string;
+};
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email.trim() || !password.trim()) {
-      alert("Email and password are required");
+      setFeedback({
+        type: "error",
+        message: "Email and password are required.",
+      });
       return;
     }
 
     setLoading(true);
+    setFeedback(null);
     try {
       const response = await api.post("/auth/login", {
         email: email.trim(),
@@ -37,7 +48,10 @@ export default function LoginPage() {
       const message = axios.isAxiosError(error)
         ? (error.response?.data as { message?: string } | undefined)?.message
         : undefined;
-      alert(message ?? "Login failed");
+      setFeedback({
+        type: "error",
+        message: message ?? "Login failed. Please check your credentials and try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -53,12 +67,24 @@ export default function LoginPage() {
 
         <div>
           <h1 className="text-3xl font-bold text-center mb-6">Login</h1>
+
+          {feedback && (
+            <StatusMessage
+              type={feedback.type}
+              message={feedback.message}
+              onDismiss={() => setFeedback(null)}
+            />
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="email"
               placeholder="Email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setFeedback(null);
+              }}
               className="w-full border p-3 rounded-lg"
               autoComplete="email"
             />
@@ -66,7 +92,10 @@ export default function LoginPage() {
               type="password"
               placeholder="Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setFeedback(null);
+              }}
               className="w-full border p-3 rounded-lg"
               autoComplete="current-password"
             />
