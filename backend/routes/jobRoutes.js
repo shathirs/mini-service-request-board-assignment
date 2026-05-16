@@ -9,6 +9,9 @@ const {
   updateJobStatus,
   deleteJob,
 } = require("../controllers/jobController");
+const { protect } = require("../middleware/authMiddleware");
+
+router.use(protect);
 
 router.get("/", getJobs);
 router.get("/:id", getJobById);
